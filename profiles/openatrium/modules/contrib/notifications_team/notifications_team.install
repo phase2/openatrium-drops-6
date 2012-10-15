@@ -1,5 +1,4 @@
 <?php
-// $Id: notifications_team.install,v 1.1.2.1.2.1 2010/05/18 19:44:52 davidg Exp $
 
 /**
  * Implementation of hook_install()

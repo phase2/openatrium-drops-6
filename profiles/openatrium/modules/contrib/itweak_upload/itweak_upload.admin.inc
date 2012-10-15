@@ -109,7 +109,7 @@ function _itweak_upload_node_type_alter_weights($elements) {
  * Pre-render callback to adjust weights of fields.
  */
 function _itweak_upload_admin_settings_alter_weights($elements) {
-  if (isset($elements['settings_general']) && isset($elements['settings_general']['#weight']) 
+  if (isset($elements['settings_general']) && isset($elements['settings_general']['#weight'])
     && isset($elements['itweak_upload'])) {
     $elements['itweak_upload']['#weight'] = $elements['settings_general']['#weight'] + 0.001;
     unset($elements['#sorted']);
@@ -137,7 +137,7 @@ function _itweak_upload_admin_settings(&$form) {
   $image_options = _itweak_upload_setting_image_options();
   $image_option_default = _itweak_upload_encode_derivative();
   $gallery_type_options = _itweak_upload_gallery_type_options();
-  
+
   $form['itweak_upload'] = array(
     '#type' => 'fieldset',
     '#title' => t('Attachments display'),
@@ -186,7 +186,7 @@ function _itweak_upload_admin_settings(&$form) {
     '#default_value' => variable_get('itweak_upload_thumbnail_title_default', 1),
     '#description' => t('Check to show by default the file name on the image opened from thumbnails (only if selected link open mode supports it).')
   );
-  
+
   $form['itweak_upload']['itweak_upload_gallery_type_default'] = array(
     '#type' => 'select',
     '#title' => t('Default image gallery type'),
@@ -195,6 +195,28 @@ function _itweak_upload_admin_settings(&$form) {
     '#description' => t('This gallery type will be used by default for image thumbnails. This setting can be overridden on each content type configuration page.'),
   );
   _itweak_upload_insert_form($form['itweak_upload'], 'default');
+}
+
+/**
+ * Theme the output of the styles list on the settings form -
+ * replacement for insert_field_widget_settings_styles with previews.
+ */
+function theme_itweak_upload_field_widget_settings_styles($element) {
+  drupal_add_js('misc/tableselect.js');
+
+  $header = array(
+    array('class' => 'select-all', 'data' => ' ' . t('Select all')),
+    array('data' => t('Preview')),
+  );
+
+  $rows = array();
+  foreach ($element['#options'] as $key => $label) {
+    $row = array();
+    $row[] = drupal_render($element[$key]);
+    $row[] = $element['#previews'][$key];
+    $rows[] = $row;
+  }
+  return theme('table', $header, $rows);
 }
 
 /*
@@ -211,6 +233,7 @@ function _itweak_upload_insert_form(&$form, $node_type) {
         $form['insert'][$name] = $field;  // Copy the fieldset
       else {
         if ($node_type != 'default' && $first) {
+          // Inject custom field
           $first = FALSE;
           $form['#pre_render'][] = '_itweak_upload_insert_js';
           $form['insert']['itweak_upload_insert_override_default'] = array(
@@ -223,39 +246,55 @@ function _itweak_upload_insert_form(&$form, $node_type) {
         if ($name == 'insert') {
           $name = 'insert_enable';  // This avoids naming hole in _itweak_upload_get_setting()
         }
-		
-if (0) { // Experimental: Preview formats
-        if ($name == 'insert_styles') {
-//FIXME: the preview file can work only from default/files/ directory... Copy four ile to it?
-$fpath = ''; // '/' . drupal_get_path('module', 'itweak_upload') . '/images/';
-$fname = 'example.jpg';
-      $item = array(
-        'filepath' => $fpath . $fname,
-        'filename' => $fname,
-      ); // Build a pretend item - we need only filepath
-    $widget = _itweak_upload_get_insert_widget_settings('default');
 
+        if ($name == 'insert_styles') {
+
+if (1) { // Experimental: Preview formats
+          // Insert module limits file links to the default/files/ directory. Instead of
+          // copying our example image file there, we prepare the link as if it is in
+          // default/files/ directory. Then we replace the string
+          $fname = 'example.jpg';
+          $seek = insert_create_url($fname);
+          $repl = url(drupal_get_path('module', 'itweak_upload') . '/images/' . $fname);
+          $item = array(
+            'filepath' => $fname,
+            'filename' => $fname,
+          ); // Build a pretend item
+          $widget = _itweak_upload_get_insert_widget_settings('default');
+          $field['#previews'] = array();
           foreach ($field['#options'] as $style_name => $description) {
             $style = insert_style_load($style_name);
-$value = insert_content($item, $style, $widget);
-//FIXME: move to a theme function:
-            $field['#options'][$style_name] = $description . ' <span>(format: ' . $value . ')</span>';
+            $value = insert_content($item, $style, $widget);
+            // Replace directory with module's path
+            $field['#previews'][$style_name] = str_replace ( $seek, $repl, $value);;
           }
+          $field['#theme'] = 'itweak_upload_field_widget_settings_styles';
 //watchdog('debug','in itu_upload_insert_form, widget='.iprintr($widget).' insert_styles='.iprintr($field));
-        }
 }  // END Experimental
+
+          // Wrap the list of styles into a fieldset
+          $field = array (
+            '#type' => 'fieldset',
+            '#title' => t('Insert styles'),
+            '#collapsible' => TRUE,
+            '#collapsed' => TRUE,
+//            '#description' => t(''),
+            'itweak_upload_' . $name . $suffix => $field,
+          );
+          $name .= '_fieldset';
+          // Move the list of styles to the end
+          $field['#weight'] = 10;
+        }
 
         $form['insert']['itweak_upload_' . $name . $suffix] = $field;
       }
-    }
+    }  // foreach
     unset($form['insert']['#weight']);
 
-    if (isset($form['insert']['itweak_upload_insert_class_' . $node_type])) {
-      $form['insert']['itweak_upload_insert_class_' . $node_type]['#description'] .= 
+    if (isset($form['insert']['itweak_upload_insert_class' . $suffix])) {
+      $form['insert']['itweak_upload_insert_class' . $suffix]['#description'] .=
         ' ' . t('Pre-defined class %cl is provided with button-like CSS styling.', array('%cl' => 'itu-insert-file'));
     }
-
-//FIXME: implement formatters here (a fieldset, collapsed, which shows a table of code as formatters will provide)
   }
 }
 
@@ -287,7 +326,7 @@ function _itweak_upload_node_type_form(&$form) {
 
   $link_options = _itweak_upload_setting_link_options(t('(Site default)'));
   $gallery_type_options = _itweak_upload_gallery_type_options(t('(Site default)'));
-    
+
   if (isset($form['workflow'])) {
     $form['workflow']['itweak_upload_collapse'] = array(
       '#type' => 'radios',

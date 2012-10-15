@@ -775,10 +775,6 @@ function spaces_init() {
     global $language;
     $language->language = ($language->language === 'spaces_customtext') ? spaces_customtext_cache() : $language->language;
   }
-  if (!spaces_access_space()) {
-    menu_set_active_item('spaces-access-denied');
-  }
-  spaces_router('init');
 
   /**
    * If the current menu object is not part of the space, this will
@@ -807,9 +803,15 @@ function spaces_init() {
   }
 
   // If the space is incorrect, reroute.
-  if ($type && !spaces_is_spaces_object($type, $object)) {
+  if (isset($type) && !spaces_is_spaces_object($type, $object)) {
     spaces_router($type, $object);
   }
+
+  if (!spaces_access_space()) {
+    menu_set_active_item('spaces-access-denied');
+  }
+  spaces_router('init');
+
 }
 
 /**

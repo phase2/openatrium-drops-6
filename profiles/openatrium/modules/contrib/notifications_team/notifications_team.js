@@ -1,4 +1,3 @@
-// $Id: notifications_team.js,v 1.1.2.1.2.2 2010/03/15 14:06:52 davidg Exp $
 
 if (Drupal.jsEnabled) {
   $(document).ready(function() {

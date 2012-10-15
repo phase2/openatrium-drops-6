@@ -2,3 +2,10 @@ name = Cookie cache bypass
 description = Sets a cookie on form submission directing a reverse proxy to temporarily not serve cached pages for an anonymous user that just submitted content.
 core = 6.x
 package = Pressflow
+
+
+; Information added by drush on 2012-10-15
+version = "master-dev"
+project = "drupal"
+datestamp = "1350328785"
+

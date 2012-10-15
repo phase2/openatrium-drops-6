@@ -6,6 +6,9 @@ include_once('atrium_groups.features.inc');
  * Implementation of hook_enable().
  */
 function atrium_groups_enable() {
+  // set Atrium Groups to load after OG is finished
+  db_query("UPDATE {system} SET weight = 2 WHERE name = 'atrium_groups' AND type = 'module'");
+
   ctools_include('export');
   ctools_export_set_status('spaces_presets', 'og_private', TRUE);
   ctools_export_set_status('spaces_presets', 'og_controlled', TRUE);
@@ -150,3 +153,8 @@ function atrium_groups_context_default_contexts_alter(&$contexts) {
   }
 }
 
+function atrium_groups_form_alter(&$form, &$form_state, $form_id) {
+  if($form_id == 'group_node_form' && !empty($form['og_private'])) {
+    unset($form['og_private']);
+  }
+}

@@ -181,6 +181,12 @@ function spaces_og_menu() {
  * Implementation of hook_menu_alter().
  */
 function spaces_og_menu_alter(&$items) {
+  foreach ($items as $key => $value) {
+    if (substr($key, 0, 20) == "node/%node/features/") {
+      $items[$key]['access callback'] = 'spaces_og_access_admin';
+      $items[$key]['access arguments'] = array(1);
+    }
+  }
   if (isset($items['node/%node/features'])) {
     $items['node/%node/features']['access callback'] = 'spaces_og_access_admin';
     $items['node/%node/features']['access arguments'] = array(1);
@@ -196,7 +202,10 @@ function spaces_og_menu_alter(&$items) {
  * Prevents items from showing up under node types that are not groups.
  */
 function spaces_og_access_admin($node) {
-  return og_is_group_type($node->type) ? spaces_access_admin() : FALSE;
+  if(og_is_group_type($node->type) && $space = spaces_load('og', $node->nid)) {
+    return spaces_access_admin(NULL, $space);
+  } else {
+    return FALSE;}
 }
 
 /**

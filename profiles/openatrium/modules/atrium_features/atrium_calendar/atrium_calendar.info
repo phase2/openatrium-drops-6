@@ -77,3 +77,10 @@ features[views][] = "calendar_upcoming"
 features[views_api][] = "api:2"
 kitf = "1.0-draft"
 spaces[types][] = "og"
+
+; Information added by drupal.org packaging script on 2012-07-26
+version = "6.x-1.3"
+core = "6.x"
+project = "atrium_features"
+datestamp = "1343327209"
+

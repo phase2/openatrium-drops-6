@@ -32,7 +32,7 @@ function notifications_user_overview($form_state, $account) {
     }
   }
   $interval = notifications_user_setting('send_interval', $account);
-  if (isset($send_intervals[$interval])) { 
+  if (isset($send_intervals[$interval])) {      
     $status['interval'] = t('Your default sending interval for new subscriptions is @send_interval', array('@send_interval' => $send_intervals[$interval]));
   }
   

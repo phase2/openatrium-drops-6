@@ -2,3 +2,10 @@ name = Path alias cache
 description = A path alias implementation which adds a cache to the core version.
 core = 6.x
 package = Pressflow
+
+
+; Information added by drush on 2012-10-15
+version = "master-dev"
+project = "drupal"
+datestamp = "1350328785"
+

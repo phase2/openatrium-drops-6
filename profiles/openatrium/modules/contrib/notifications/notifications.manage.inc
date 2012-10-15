@@ -114,8 +114,8 @@ function notifications_manage_subscriptions_form($account = NULL, $full = TRUE) 
     if (!$account) {
       $form['username'][$sub->sid] = array('#value' => theme('username', $sub));
     }
-    $form['send_method'][$sub->sid] = array('#value' => !empty($send_methods[$sub->send_method]) ? check_plain($send_methods[$sub->send_method]) : check_plain($sub->send_method));
-    $form['send_interval'][$sub->sid] = array('#value' => !empty($send_intervals[$sub->send_interval]) ? check_plain($send_intervals[$sub->send_interval]) : check_plain($sub->send_interval));  
+    $form['send_method'][$sub->sid] = array('#value' => !empty($send_methods[$sub->send_method]) ? $send_methods[$sub->send_method] : $sub->send_method);
+    $form['send_interval'][$sub->sid] = array('#value' => !empty($send_intervals[$sub->send_interval]) ? $send_intervals[$sub->send_interval] : $sub->send_interval);  
     $form['status'][$sub->sid] =  array('#value' => $status[$sub->status]);
     // These links will be different depending on whether we are under admin or user account
     if ($account) {

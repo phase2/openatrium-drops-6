@@ -197,6 +197,17 @@ function spaces_dashboard_access($op = 'feature', $dashboard = NULL, $type = NUL
         return $access && spaces_access_feature($op, 'spaces_dashboard');
       }
       return FALSE;
+    case 'og':
+      if($space && $space->type === 'og') {
+        switch ($op) {
+          case 'admin':
+            return spaces_access_admin(NULL, $space);
+          default:
+            return spaces_access_feature($op, 'spaces_dashboard');
+          break;
+        }
+        return FALSE;
+      }
     default:
       // When the dashboard is turned on for a different space type and the
       // user space is active do a separate access check for the dashboard.

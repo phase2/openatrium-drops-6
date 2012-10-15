@@ -54,10 +54,7 @@ class space_og extends space_type_purl {
     global $user;
     $account = isset($account) ? $account : $user;
 
-    return parent::access_space($account) &&
-      ($this->group->og_private != 1 ||                     // Group is public, allow access
-      og_is_group_member($this->id, TRUE, $account->uid) || // User is group member, allow access
-      !$account->uid);                                      // User hasn't logged in -- provide entry point
+    return parent::access_space($account) && node_access('view', $this->group, $account);
   }
 
   /**
@@ -186,6 +183,11 @@ class space_og extends space_type_purl {
     $excluded[] = 'og';
     $excluded[] = 'og/my';
     $excluded[] = 'og/all';
+    $excluded[] = 'user';
+    $excluded[] = 'user/login';
+    $excluded[] = 'user/password';
+    $excluded[] = 'user/register';
+    $excluded[] = 'logout';
     return $excluded;
   }
 }

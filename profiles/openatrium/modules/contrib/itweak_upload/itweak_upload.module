@@ -148,7 +148,12 @@ function _itweak_upload_file_create_url($file) {
   if (function_exists('_private_upload_create_url')) {
     $href = _private_upload_create_url($file);
   } else {
-    $href = file_create_url($file->filepath);
+    // [#706454] Fix-ahead for file path on new nodes when filefield_paths will change it after submit
+//    $href = file_create_url($file->filepath);
+    $alias = module_exists('filefield_paths')
+      ? db_result(db_query("SELECT dst FROM {url_alias} WHERE src = '%s'",'filefield_paths/alias/' . $file -> fid))
+      : false;
+    $href = ($alias) ?  $alias : file_create_url($file->filepath);
   }
   return $href;
 }
@@ -195,7 +200,7 @@ function itweak_upload_itweak_upload_preview($file, $derivative, $show_title = F
   }
 }
 
-/*
+/**
  * Similar to _itweak_upload_preprocess_files(), only works on already prepared form
  * @param $files
  *  Array of file objects, same type as nodeapi 'view' "if ($node->nid) foreach ($node->files as $fid => $file) ..."
@@ -241,15 +246,13 @@ function _itweak_upload_files_thumbnails(&$files, $vid, $cid, $node_type, $group
  *  Node type or 'comment'.
  */
 function _itweak_upload_upload_form_prerender($form) {
-  $type = $form['#node']->type;
-  if ($type == 'comment') {
-    $node_type = $form['#node']->parent_type;
+  $node_type = $form['#node']->type;
+  if (isset($form['#node']->itu_comment)) {
     $node_type_name = t('comment');
     $cid = $form['cid']['#value'] ? $form['cid']['#value'] : 'new';
     $group = 'c' . $cid;
   }
   else {
-    $node_type = $type;
     $node_type_name = strtolower(node_get_types('name', $node_type));
     $cid = NULL;
     $group = $form['#node']->nid ? $form['#node']->nid : 'new';
@@ -265,7 +268,11 @@ function _itweak_upload_upload_form_prerender($form) {
   $add_descr  = ($limits['resolution'] ? t('Images are larger than %resolution will be resized. ', array('%resolution' => $limits['resolution'])) : '') . t('Files must be smaller than %filesize and have one of the following extensions: %extensions.', array('%filesize' => format_size($limits['file_size']), '%extensions' => $limits['extensions']));
   if (!isset($form['attachments']['#description']))
     $form['attachments']['#description'] = '';
-  if (FALSE === strpos($form['attachments']['#description'], $add_descr))
+//  if (FALSE === strpos($form['attachments']['#description'], $add_descr))
+//  if (FALSE === strpos($form['attachments']['#description'], $add_descr) && variable_get('itweak_show_attachments_description', 1))
+//  if (FALSE === strpos($form['attachments']['#description'], $add_descr) && variable_get('itweak_upload_show_attachments_description', 1))
+  if (FALSE === strpos($form['attachments']['#description'], $add_descr)
+    && _itweak_upload_get_setting('show_attachments_description', '', $node_type, 1))
     $form['attachments']['#description'] .= ' ' . $add_descr;
   $form['buttons']['#weight'] = 100;
   // Schedule theming of file attachments.
@@ -296,7 +303,7 @@ function _itweak_upload_upload_form_prerender_themes($form) {
   return $form;
 }
 
-/*
+/**
  * Get a hierarchical setting.
  * Order of settings is:
  *   node type specific > node type default > global default > given default
@@ -323,8 +330,10 @@ function _itweak_upload_get_setting($setting_base, $setting_name, $node_type, $d
   if ($setting_base) {
     $ret1 = variable_get('itweak_upload_' . $setting_base . '_default', $ret);
     if ($ret1 !== '_default') $ret = $ret1;
-    $ret1 = variable_get('itweak_upload_' . $setting_base . '_default_' . $node_type, $ret);
-    if ($ret1 !== '_default') $ret = $ret1;
+    if ($setting_name != '') {
+      $ret1 = variable_get('itweak_upload_' . $setting_base . '_default_' . $node_type, $ret);
+      if ($ret1 !== '_default') $ret = $ret1;
+    }
     $setting_name = $setting_base . ($setting_name ? '_' . $setting_name : '');
   }
   $ret1 = variable_get('itweak_upload_' . $setting_name . '_' . $node_type, $ret);
@@ -364,7 +373,7 @@ function _itweak_upload_gallery_type_default() {
   return 'none';
 }
 
-/*
+/**
  * Retrieve link options - carries handler setting for link display mode.
  * @param $file
  *  File object, same type as nodeapi 'view'
@@ -572,8 +581,13 @@ function itweak_upload_form_alter(&$form, $form_state, $form_id) {
         $nid = $form['nid']['#value'];
         // All we need is node type.
         $node = node_load($nid);   // Expecting it to be cached data.
-        $form['#node']->type = 'comment';    // set 'comment' type for _itweak_upload_upload_form_prerender()
-        $form['#node']->parent_type = $node->type;   // pass node_type into _itweak_upload_upload_form_prerender()
+        // [#917270] Fix $form['#node']->type for comment_driven
+//        $form['#node']->type = 'comment';    // set 'comment' type for _itweak_upload_upload_form_prerender()
+//        $form['#node']->parent_type = $node->type;   // pass node_type into _itweak_upload_upload_form_prerender()
+        $form['#node']->itu_comment = TRUE;    // tell its 'comment' to _itweak_upload_upload_form_prerender()
+        if (!isset($form['#node']->type)) {
+          $form['#node']->type = $node->type;   // pass node_type into _itweak_upload_upload_form_prerender()
+        }
         $form['#node']->vid = $node->vid;
         $form['#pre_render'][] = '_itweak_upload_upload_form_prerender';
         $form['#submit'][] = '_itweak_upload_files_imagecache_flush';
@@ -661,6 +675,13 @@ function itweak_upload_theme() {
     ),
     'itweak_upload_images_comment' => array(
       'arguments' => array('thumbnails' => NULL, 'limit' => NULL, 'options' => NULL),
+    ),
+    'itweak_upload_field_widget_settings_styles' => array(
+      'arguments' => array('element' => NULL),
+      'file' => 'itweak_upload.admin.inc',
+    ),
+    'view_uploaded_files_forbidden' => array(
+      'arguments' => array('node' => NULL),
     ),
   );
 }
@@ -779,28 +800,28 @@ function itweak_upload_upload_form_current($form) {
     }
 
     // COLUMN - file descritpion, size & URL, plus js-injected rename/remove links
-    $output = '';
+    $html = '';
     // Description: we save the URL, remove it as a description and change the size of the input
     $url = $form[$key]['description']['#description'];
     unset($form[$key]['description']['#description']);
     $form[$key]['description']['#size'] = 40;
     $form[$key]['description']['#attributes'] = array('class' => 'rename');
-    $output .= drupal_render($form[$key]['description']);
+    $html .= drupal_render($form[$key]['description']);
     // Size & URL
-    $output .= '<span class="details">' . drupal_render($form[$key]['size']) . ' - ' . $url . '</span>';
+    $html .= '<span class="details">' . drupal_render($form[$key]['size']) . ' - ' . $url . '</span>';
     $row[] = array(
-      'data' => $output,
+      'data' => $html,
       'class' => 'file container-inline'
     );
 
     // COLUMN - insert link & selector
     if ($widget) {
-      $output  = drupal_render($form[$key]['insert_templates']);
-      $output .= drupal_render($form[$key]['insert']);
+      $html  = drupal_render($form[$key]['insert_templates']);
+      $html .= drupal_render($form[$key]['insert']);
       // Add span same as in .file - this is to help for vertical alignment
-      $output .= '<span class="details">' . '&nbsp;' . '</span>';
+      $html .= '<span class="details">' . '&nbsp;' . '</span>';
       $row[] = array(
-        'data' => $output,
+        'data' => $html,
         'class' => 'itu-insert container-inline'
       );
     }
@@ -815,17 +836,17 @@ function itweak_upload_upload_form_current($form) {
 
     // COLUMN - List checkbox & (optional) private checkbox
     $form[$key]['list']['#suffix'] = ' ' . t('List');
-    $output = drupal_render($form[$key]['list']);
+    $html = drupal_render($form[$key]['list']);
 
     // Handle private checkbox (from private_upload.module)
     if (isset($form[$key]['private'])) {
       $form[$key]['private']['#suffix'] = ' ' . t('Private');
-      $output .= ' ' . drupal_render($form[$key]['private']);
+      $html .= ' ' . drupal_render($form[$key]['private']);
     }
     // Add span same as in .file - this is to help for vertical alignment
-    $output .= '<span class="details">' . '&nbsp;' . '</span>';
+    $html .= '<span class="details">' . '&nbsp;' . '</span>';
     $row[] = array(
-      'data' => $output,
+      'data' => $html,
       'class' => 'list container-inline'
     );
 
@@ -834,7 +855,10 @@ function itweak_upload_upload_form_current($form) {
 
     $rows[] = array('data' => $row, 'class' => 'draggable mime-' . $extension);
   }
-  $output = theme('table', array(), $rows, array('id' => 'upload-attachments'));
+  $output = '';
+  if (count($rows)) {
+    $output .= theme('table', array(), $rows, array('id' => 'upload-attachments'));
+  }
   $output .= drupal_render($form);
   return $output;
 }
@@ -882,6 +906,12 @@ function itweak_upload_upload_attachments($files) {
       $options = isset($file->preview_options) ? $file->preview_options : array();
       if (!$file->access || !(isset($file->preview) || _itweak_upload_isimage($file) || isset($options['custom'])))
         $options = array();
+
+      // [#1253692] by smokris: Add a hook for other modules to alter attachment links
+      $data = compact('file', 'text', 'href', 'options');
+      drupal_alter('itweak_uploads_prerender', $data);
+      extract($data);
+
       $row[] = array(
         'data' => l($text, $href, $options),
         'class' => 'file',
@@ -928,7 +958,7 @@ function itweak_upload_comment_upload_attachments($files, $display_images = FALS
   }
 }
 
-/*
+/**
  * Worker function for preprocessing node & comment files.
  * @param $files
  *  Array of file objects (descriptors from node).
@@ -1073,6 +1103,12 @@ function itweak_upload_nodeapi(&$node, $op, $teaser, $page) {
             );
           }
         }
+      }
+      if ($files_display && $node->files && !user_access('view uploaded files')) {
+        $node->content['itweak_upload'] = array(
+          '#value' => theme('view_uploaded_files_forbidden', $node),
+          '#weight' => 49,
+        );
       }
       break;
 
@@ -1391,7 +1427,7 @@ function itweak_upload_progress($key=NULL) {
   drupal_json($progress);
 }
 
-/*
+/**
  * Process upload form and add a progress bar.
  * Code idea from [#389150]. Except:
  * Using hooking mechanism that is a hack - we want to come in before #process
@@ -1456,3 +1492,38 @@ function _itweak_upload_add_progressbar($form, $form_state) {
   return $form;
 }
 
+/**
+ * Implementation of theme_view_uploaded_files_forbidden().
+ * Theme the attachments output when user is not allowed to view them.
+ * @param $node
+ *  Node on which the uploaded files would be displayed.
+ */
+function theme_view_uploaded_files_forbidden($node) {
+  global $user;
+  static $authenticated_view_uploaded_files;
+
+  if (!$user->uid) {
+    if (!isset($authenticated_view_uploaded_files)) {
+      // We only output any link if we are certain, that users get permission
+      // to view uploaded files by logging in. We also locally cache this information.
+      $authenticated_view_uploaded_files = array_key_exists(DRUPAL_AUTHENTICATED_RID, user_roles(TRUE, 'view uploaded files'));
+    }
+
+    if ($authenticated_view_uploaded_files) {
+      $destination = drupal_get_destination();
+
+      if (variable_get('user_register', 1)) {
+        // Users can register themselves.
+        $html = t('<a href="@login">Login</a> or <a href="@register">register</a> to view attached files', array('@login' => url('user/login', array('query' => $destination)), '@register' => url('user/register', array('query' => $destination))));
+      }
+      else {
+        // Only admins can add new users, no public registration.
+        $html = t('<a href="@login">Login</a> to view attached files', array('@login' => url('user/login', array('query' => $destination))));
+      }
+
+      $div_class  = 'itu-attachment-forbidden';
+      $html = '<div class="' . $div_class . '">' . $html . '</div>';
+      return $html;
+    }
+  }
+}

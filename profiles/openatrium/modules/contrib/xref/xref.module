@@ -147,7 +147,7 @@ function xref_fields($nodetype, $reset = FALSE) {
     $fields[$nodetype] = array();
     // Get nodereference fields that may reference this node
     foreach (content_fields() as $field) {
-      if ($field['type'] == 'nodereference') {
+      if ($field['type'] == 'nodereference' && is_array($field['referenceable_types'])) {
         foreach ($field['referenceable_types'] as $type) {
           if ($type === $nodetype) {
             $fields[$nodetype][$field['field_name']] = $field;
@@ -185,7 +185,7 @@ function xref_links($nodetype, $nid) {
           $links[$type] = array(
             'title' => t('via @nodetype', array('@nodetype' => $item['title'])),
             'href' => $item['href'],
-            'query' => "edit[{$row->field_name}][0][nid][nid]= ". check_plain($node->title) ." [nid: {$nid}]",
+            'query' => check_plain("edit[{$row->field_name}][0][nid][nid]= ". urlencode($node->title) ." [nid: {$nid}]"),
           );
         }
       }

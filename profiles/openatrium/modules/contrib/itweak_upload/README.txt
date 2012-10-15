@@ -11,11 +11,14 @@ With iTweak Upload module you can tweak file upload forms and improve attachment
 * (Option) Display thumbnails for image attachments
 * (Option) Display image attachments in a gallery
 * (Option) Hide non-image files when there are image attachments in a gallery
-* (Option) Show images in a popup (lightbox2, thickbox, fancybox, shadowbox, highslide), grouped or slideshow (lightbox2, shadowbox, highslide)
+* (Option) Show images in animated popup (lightbox2, thickbox, fancybox, shadowbox, highslide), grouped or slideshow (lightbox2, shadowbox, highslide)
 * Independent of theme - works with any theme that does not already customize file uploads
 * jCarousel (if installed) is used for the image attachments gallery
+* jCarousel Lite (if installed) can be used for the image attachments gallery (experimental)
 * (Option) Show upload progress percent complete using server-side uploadprogress or APC
 * Compatible with popular modules download_count, private_upload
+* Insert feature added to the files upload form (Insert module required)
+* Insert feature preview of presets
 
 Default options are configurable for the whole site. Initial installation comes with a preset for imagecache and it autodetects Lightbox, Thickbox, Fancybox or Shadowbox mode, so you can get the whole shebang in a couple of clicks.
 
@@ -34,6 +37,8 @@ Usage
 * Module starts working once enabled
 * There are new site-wide settings on the file uploads form (/admin/settings/uploads)
   under "Attachments display" section
+* If "Insert" module is installed and enabled, enable and configure Insert options on the file uploads form (/admin/settings/uploads)
+  under "Attachments display" > "Insert" section
 * Image and attachment display options are configured in each content type:
   Go to /admin/content/node-type and select specific content type, then edit the "Attachments display" section
 * ImageCache preset is required for thumbnails:
@@ -66,4 +71,5 @@ http://teddy.fr/blog/improving-file-attachments-form-drupal
 (dated 2009-06-06)
 Version 2.0 image gallery feature is inspired by Upload Image (http://drupal.org/project/upload_image)
 Version 2.1 upload previews feature is inspired by Upload Preview (http://drupal.org/project/upload_preview)
+Example picture for Insert preview of presets kindly provided by Tatjana Polyakova (Hawaii, Watercolor 6"x 8", http://tpol-art.com)
 

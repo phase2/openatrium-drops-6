@@ -1,5 +1,4 @@
 <?php
-// $Id: notifications_team.module,v 1.1.2.10.2.27 2010/05/20 21:18:16 davidg Exp $
 
 /**
  * notifications_team provides a GUI for subscribing to content
@@ -51,42 +50,6 @@ function notifications_team_theme() {
       'arguments' => array('data' => NULL, 'separator' => NULL, 'user' => NULL),
     ),
   );
-}
-
-/**
- * We implement a more efficient static cache than user_access()
- * to check whether a user can subscribe to content.
- */
-function notifications_team_can_subscribe($account = NULL, $reset = FALSE) {
-  // Cache the role ids that have access to 'subscribe to content'
-  static $roles;
-
-  if ($account->uid == 1) {
-    return TRUE;
-  }
-
-  if (!isset($roles) || $reset) {
-    $result = db_query("SELECT rid, perm FROM {permission}");
-    while ($row = db_fetch_object($result)) {
-      $perms = explode(', ', $row->perm);
-      if (array_search('subscribe to content', $perms) !== FALSE) {
-        $roles[$row->rid] = TRUE;
-      }
-      else {
-        $roles[$row->rid] = FALSE;
-      }
-    }
-  }
-
-  // Check each role to see if this user has access to 'subscribe to content'
-  if (!empty($account->roles)) {
-    foreach ($account->roles as $rid) {
-      if (!empty($roles[$rid])) {
-        return TRUE;
-      }
-    }
-  }
-  return FALSE;
 }
 
 /**
@@ -512,7 +475,7 @@ function notifications_team_comment(&$comment, $op) {
         }
 
         $nid = $comment['nid'];
-        notifications_team_update($nid, $uids, empty($comment->notifications_content_disable));
+        notifications_team_update($nid, $uids, empty($comment['notifications_content_disable']));
       }
       break;
   }
@@ -674,7 +637,7 @@ function notifications_team_ui_settings_form() {
      '#type' => 'select',
      '#options' => $views,
      '#default_value' => variable_get('notifications_team_user_view', ''),
-     '#description' => t('Optionally you can define a view for the list of available users. This view must have at least <i>user id</i> and <i>name</i> fields. For the autocomplete option to work properly you need CCK module enabled.'),
+     '#description' => t('Optionally you can define a view for the list of available users. This view must have at least <i>user id</i> and <i>name</i> fields.'),
      '#disabled' => count($views) == 1,
   );
   
@@ -772,7 +735,7 @@ function notifications_team_autocomplete($oggroup = 0, $notify = '') {
     $prefix = count($array) ? implode(', ', $array) .', ' : '';
     foreach (notifications_team_get_users($string, 10, $oggroup) as $user) {
       $display = isset($user->plaintext) ? $user->plaintext : check_plain($user->name);
-      $matches[$prefix . $user->name] = $prefix . $display;
+      $matches[$prefix . $user->name] = $display;
     }
   }
   drupal_json($matches);

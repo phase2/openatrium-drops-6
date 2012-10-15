@@ -37,7 +37,7 @@ class spaces_og_handler_field_og_group_nids extends og_views_handler_field_og_gr
   /**
    * Collect group title, purl here.
    */
-  function pre_render($values) {
+  function pre_render(&$values) {
     if ($this->options['spaces_og_frontpage']) {
       $this->field_alias = $this->aliases['og_ancestry_nid'];
       foreach ($values as $value) {

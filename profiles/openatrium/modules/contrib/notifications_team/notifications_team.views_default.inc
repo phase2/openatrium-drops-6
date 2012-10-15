@@ -1,5 +1,4 @@
 <?php
-// $Id: notifications_team.views_default.inc,v 1.1.2.1 2010/05/07 14:14:59 jareyero Exp $
 
 /**
  * Implementation of hook_views_default_views().

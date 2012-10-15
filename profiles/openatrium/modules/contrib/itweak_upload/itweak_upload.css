@@ -14,12 +14,12 @@
  * green   - hover insert link font
  *
  * !important is used in some styles to forward-override defaults in themes
- *   3 times - width 
+ *   3 times - width
  *   5 times - padding
  *   5 times - margin
  *  19 times - background mime 32x32
  *  19 times - background mime 16x16
- *   3 times - background 
+ *   3 times - background
  *   4 times - border
  *   3 times - text-decoration
  *  total: 61 times
@@ -638,4 +638,12 @@ table.itu-attachment-list .mime {
 }
 /* Fixing jCarousel Lite spacing. */
 .jcarousellite ul div { margin: 0 4px 0 0; }
+
+/* div with view uploaded files forbidden message */
+.itu-attachment-forbidden {
+  border: 1px solid #DDD;
+  background: none;
+  padding: 0 5px;
+  margin: 0 0 1em;
+}
 

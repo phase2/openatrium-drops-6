@@ -1,12 +1,13 @@
-; $Id$
-name = Locale updater
-description = Provides automatic downloads and updates for translations
+name = Localization update
+description = Provides automatic downloads and updates for translations.
 dependencies[] = locale
 core = 6.x
 package = Multilanguage
-; Information added by fserver
+php = 5
+
+; Information added by drupal.org packaging script on 2012-02-26
+version = "6.x-1.0-beta3"
 core = "6.x"
-datestamp = "1263337433"
 project = "l10n_update"
-project status url = "http://featureserver.phase2technology.com/fserver"
-version = "6.x-1.0-alpha1"
+datestamp = "1330292747"
+

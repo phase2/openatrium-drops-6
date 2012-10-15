@@ -3,3 +3,10 @@ description = Enables actions to be fired on certain system events, such as when
 package = Core - optional
 version = VERSION
 core = 6.x
+
+
+; Information added by drush on 2012-10-15
+version = "master-dev"
+project = "drupal"
+datestamp = "1350328785"
+

@@ -1,7 +1,18 @@
-
-
 itweak_upload 6.x-2.x-dev
 -------------------------
+
+
+itweak_upload 6.x-2.6, 2012-05-02
+---------------------------------
+[#917270]  by iva2k: Fix $form['#node']->type for comment_driven
+[#706454]  by rbrandon: Fix-ahead for file path on new nodes when filefield_paths will change it after submit
+[NOISSUE]  by iva2k: Updated Readme and Rearranged Insert sub-section of Attachments configuration form for readability
+[NOISSUE]  by iva2k: Fixed description add-on not showing on custom class in Insert sub-section of content types
+[#1253692] by smokris: Add a hook for other modules to alter attachment links
+[NOISSUE]  by iva2k: Finished Insert feature preview of presets (no example image file copy to /default/files needed)
+[#1293338] by iva2k: Added show_attachments_description setting
+[#1320946] by rbrandon: Fix empty table elements when no rows to theme
+[NOISSUE]  by iva2k: Added "Login or register to view attached files" for anonymous users
 
 
 itweak_upload 6.x-2.5, 2011-08-28

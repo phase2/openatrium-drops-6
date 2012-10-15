@@ -32,3 +32,12 @@ function atrium_groups_update_6001() {
 
   return array(array('success' => true, 'query' => 'Atrium Groups updated for Kit compliance.'));
 }
+
+/**
+ * run atrium_groups after OG fully loads.
+ */
+function atrium_groups_update_6002() {
+  db_query("UPDATE {system} SET weight = 2 WHERE name = 'atrium_groups' AND type = 'module'");
+  
+  return array(array('success' => true, 'query' => 'Atrium Groups weight now set to load after OG fully loaded.'));
+}

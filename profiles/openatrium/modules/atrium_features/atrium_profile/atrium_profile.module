@@ -12,13 +12,13 @@ function atrium_profile_menu_alter(&$items) {
     unset($items['node/add/profile']);
   }
   if (isset($items['user/%user/view'])) {
-    $items['user/%user/view']['title'] = t('Profile');
+    $items['user/%user/view']['title'] = 'Profile';
   }
   if (isset($items['user/%user_category/edit'])) {
-    $items['user/%user_category/edit']['title'] = t('Account settings');
+    $items['user/%user_category/edit']['title'] = 'Account settings';
   }
   if (isset($items['user/%user/openid'])) {
-    $items['user/%user/openid']['title'] = t('OpenID');
+    $items['user/%user/openid']['title'] = 'OpenID';
   }
 }
 
